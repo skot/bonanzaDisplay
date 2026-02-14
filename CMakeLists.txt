@@ -14,22 +14,17 @@ pico_sdk_init()
 # --------------------------------------------------------------------------
 # LVGL
 # --------------------------------------------------------------------------
-set(LV_CONF_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config/lv_conf.h" CACHE STRING "" FORCE)
+set(LV_BUILD_CONF_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config" CACHE STRING "" FORCE)
 set(LV_CONF_BUILD_DISABLE_EXAMPLES ON CACHE BOOL "" FORCE)
 set(LV_CONF_BUILD_DISABLE_DEMOS ON CACHE BOOL "" FORCE)
+set(LV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/lvgl)
 
-# Make lv_conf.h visible to LVGL
-target_include_directories(lvgl PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/config
-)
-
-# --------------------------------------------------------------------------
-# PIO program
-# --------------------------------------------------------------------------
-pico_generate_pio_header(${PROJECT_NAME}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/display/parallel_8080.pio
-)
+# Remove Helium (ARMv8.1-M MVE) assembly — not supported on RP2350 Cortex-M33
+get_target_property(LVGL_SOURCES lvgl SOURCES)
+list(FILTER LVGL_SOURCES EXCLUDE REGEX ".*helium.*\\.S$")
+set_target_properties(lvgl PROPERTIES SOURCES "${LVGL_SOURCES}")
 
 # --------------------------------------------------------------------------
 # Main executable
@@ -40,6 +35,13 @@ add_executable(${PROJECT_NAME}
     src/lvgl_port/lv_port_disp.c
     src/lvgl_port/lv_port_indev.c
     src/ui/ui_dashboard.c
+)
+
+# --------------------------------------------------------------------------
+# PIO program (must be after add_executable)
+# --------------------------------------------------------------------------
+pico_generate_pio_header(${PROJECT_NAME}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/display/parallel_8080.pio
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
