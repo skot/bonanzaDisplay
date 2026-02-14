@@ -78,4 +78,46 @@ void ssd1322_set_display_on(bool on);
  */
 bool ssd1322_is_busy(void);
 
+/**
+ * Minimal reset: GPIO setup + hardware reset only, no init commands.
+ * Tests display with SSD1322 power-on defaults.
+ */
+void ssd1322_minimal_reset(void);
+
+/**
+ * Initialize SSD1322 entirely via GPIO bit-bang (no PIO).
+ * Used for debugging to verify basic communication.
+ */
+void ssd1322_init_bitbang(void);
+
+/**
+ * Send a command byte via GPIO bit-bang.
+ * @param cmd Command byte
+ */
+void ssd1322_bitbang_cmd(uint8_t cmd);
+
+/**
+ * Send a data byte via GPIO bit-bang.
+ * @param data Data byte
+ */
+void ssd1322_bitbang_data(uint8_t data);
+
+/**
+ * GPIO bit-bang test: fill display RAM bypassing PIO.
+ * @param pattern Fill pattern byte (e.g., 0xFF for white, 0x00 for black)
+ */
+void ssd1322_test_bitbang_fill(uint8_t pattern);
+
+/**
+ * GPIO bit-bang test: fill ENTIRE SSD1322 RAM (all 120 cols × 128 rows).
+ * Eliminates column offset guessing.
+ * @param pattern Fill pattern byte
+ */
+void ssd1322_test_bitbang_fill_full(uint8_t pattern);
+
+/**
+ * Debug: print GPIO pin states and verify DC# toggles.
+ */
+void ssd1322_debug_gpio_state(void);
+
 #endif // SSD1322_H

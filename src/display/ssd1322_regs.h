@@ -36,6 +36,10 @@
 #define SSD1322_CMD_SET_PRECHARGE_VOLTAGE   0xBB
 #define SSD1322_CMD_SET_VCOMH               0xBE
 
+// --- Display Enhancement ---
+#define SSD1322_CMD_DISPLAY_ENHANCE_A       0xB4
+#define SSD1322_CMD_DISPLAY_ENHANCE_B       0xD1
+
 // --- Contrast ---
 #define SSD1322_CMD_SET_CONTRAST            0xC1
 #define SSD1322_CMD_MASTER_CONTRAST         0xC7

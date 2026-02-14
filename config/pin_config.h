@@ -20,7 +20,7 @@
 
 // --- 8080 Control Signals ---
 #define PIN_RD              8         // Read strobe (active low, directly to 3V3 if unused)
-#define PIN_WR              9         // Write strobe (active low, directly from PIO)
+#define PIN_WR              9         // Write strobe (active low, pulsed for each byte)
 #define PIN_DC              10        // Data/Command select (0=command, 1=data)
 #define PIN_RES             11        // Reset (active low)
 #define PIN_CS              12        // Chip select (active low)
