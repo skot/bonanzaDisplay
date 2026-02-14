@@ -11,6 +11,7 @@
  */
 
 #include "ui.h"
+#include "fonts.h"
 #include <stdio.h>
 
 // ==========================================================================
@@ -37,14 +38,14 @@ void ui_dashboard_create(void) {
     label_title = lv_label_create(scr);
     lv_label_set_text(label_title, "bonanzaDisplay");
     lv_obj_set_style_text_color(label_title, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(label_title, &lv_font_montserrat_14, LV_PART_MAIN);
+    lv_obj_set_style_text_font(label_title, &font_pixel_16, LV_PART_MAIN);
     lv_obj_align(label_title, LV_ALIGN_TOP_MID, 0, 2);
 
     // --- Status Label (center) ---
     label_status = lv_label_create(scr);
     lv_label_set_text(label_status, "Initializing...");
     lv_obj_set_style_text_color(label_status, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(label_status, &lv_font_montserrat_10, LV_PART_MAIN);
+    lv_obj_set_style_text_font(label_status, &font_pixel_12, LV_PART_MAIN);
     lv_obj_align(label_status, LV_ALIGN_CENTER, 0, 0);
 
     // --- Activity Bar (bottom) ---

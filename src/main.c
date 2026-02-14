@@ -18,6 +18,7 @@
 #include "ssd1322_regs.h"
 #include "lv_port_disp.h"
 #include "pin_config.h"
+#include "fonts.h"
 
 // ==========================================================================
 // LVGL Tick — Pico SDK monotonic ms clock
@@ -68,21 +69,21 @@ int main(void) {
     lv_obj_t *title = lv_label_create(scr);
     lv_label_set_text(title, "bonanzaDisplay");
     lv_obj_set_style_text_color(title, lv_color_white(), 0);
-    lv_obj_set_style_text_font(title, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_font(title, &font_pixel_16, 0);
     lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 4);
 
     // Info label — smaller, centered below
     lv_obj_t *info = lv_label_create(scr);
     lv_label_set_text(info, "LVGL + PIO + DMA");
     lv_obj_set_style_text_color(info, lv_color_white(), 0);
-    lv_obj_set_style_text_font(info, &lv_font_montserrat_10, 0);
+    lv_obj_set_style_text_font(info, &font_pixel_12, 0);
     lv_obj_align(info, LV_ALIGN_CENTER, 0, 4);
 
     // Counter label — bottom, updates every frame
     lv_obj_t *counter = lv_label_create(scr);
     lv_label_set_text(counter, "Frame: 0");
     lv_obj_set_style_text_color(counter, lv_color_white(), 0);
-    lv_obj_set_style_text_font(counter, &lv_font_montserrat_10, 0);
+    lv_obj_set_style_text_font(counter, &font_pixel_8, 0);
     lv_obj_align(counter, LV_ALIGN_BOTTOM_MID, 0, -4);
 
     printf("Entering LVGL main loop...\n");

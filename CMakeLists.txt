@@ -35,6 +35,9 @@ add_executable(${PROJECT_NAME}
     src/lvgl_port/lv_port_disp.c
     src/lvgl_port/lv_port_indev.c
     src/ui/ui_dashboard.c
+    src/fonts/font_pixel_8.c
+    src/fonts/font_pixel_12.c
+    src/fonts/font_pixel_16.c
 )
 
 # --------------------------------------------------------------------------
@@ -49,6 +52,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/display
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lvgl_port
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/fonts
     ${CMAKE_CURRENT_SOURCE_DIR}/config
 )
 
