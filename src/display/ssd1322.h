@@ -61,6 +61,12 @@ void ssd1322_set_window(uint8_t col_start, uint8_t col_end,
 void ssd1322_flush_dma(const uint8_t *buf, uint16_t len, void (*callback)(void));
 
 /**
+ * Fill the entire display with a single pattern byte (via PIO).
+ * @param pattern Fill byte (e.g., 0xFF for white, 0x00 for black)
+ */
+void ssd1322_fill(uint8_t pattern);
+
+/**
  * Set display contrast (brightness).
  * @param contrast Contrast value 0–255
  */

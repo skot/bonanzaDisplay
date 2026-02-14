@@ -111,6 +111,18 @@ void ssd1322_set_window(uint8_t col_start, uint8_t col_end,
     ssd1322_cmd_with_args(SSD1322_CMD_SET_ROW_ADDR, row_args, 2);
 }
 
+void ssd1322_fill(uint8_t pattern) {
+    ssd1322_set_window(SSD1322_COL_START, SSD1322_COL_END,
+                        SSD1322_ROW_START, SSD1322_ROW_END);
+    ssd1322_write_cmd(SSD1322_CMD_WRITE_RAM);
+    pio_wait_idle();
+    gpio_put(PIN_DC, 1);  // Data mode for entire fill
+    for (int i = 0; i < (SSD1322_WIDTH / 2) * SSD1322_HEIGHT; i++) {
+        pio_put_byte(pattern);
+    }
+    pio_wait_idle();
+}
+
 void ssd1322_set_contrast(uint8_t contrast) {
     uint8_t args[1] = { contrast };
     ssd1322_cmd_with_args(SSD1322_CMD_SET_CONTRAST, args, 1);

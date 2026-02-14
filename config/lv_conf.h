@@ -31,11 +31,8 @@
 #define LV_USE_OS                       LV_OS_NONE
 
 // ==========================================================================
-// Tick
+// Tick — handled via lv_tick_set_cb() in main.c
 // ==========================================================================
-#define LV_TICK_CUSTOM                  1
-#define LV_TICK_CUSTOM_INCLUDE          "pico/time.h"
-#define LV_TICK_CUSTOM_SYS_TIME_EXPR    ((uint32_t)(to_ms_since_boot(get_absolute_time())))
 
 // ==========================================================================
 // Logging

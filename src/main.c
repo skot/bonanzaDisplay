@@ -6,27 +6,25 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "pico/stdlib.h"
 #include "pico/stdio_usb.h"
+#include "pico/time.h"
 #include "hardware/timer.h"
 #include "hardware/clocks.h"
-#include "hardware/structs/sio.h"
 
 #include "lvgl.h"
 #include "ssd1322.h"
+#include "ssd1322_regs.h"
 #include "lv_port_disp.h"
-#include "lv_port_indev.h"
-#include "ui.h"
 #include "pin_config.h"
 
 // ==========================================================================
-// LVGL Tick (1 ms via repeating timer)
+// LVGL Tick — Pico SDK monotonic ms clock
 // ==========================================================================
 
-static bool lvgl_tick_cb(struct repeating_timer *t) {
-    (void)t;
-    lv_tick_inc(1);
-    return true;  // Keep repeating
+static uint32_t pico_tick_get_cb(void) {
+    return to_ms_since_boot(get_absolute_time());
 }
 
 // ==========================================================================
@@ -36,67 +34,72 @@ static bool lvgl_tick_cb(struct repeating_timer *t) {
 int main(void) {
     // --- Platform init ---
     stdio_init_all();
-    sleep_ms(500);  // Brief settle, don't wait for USB
+    sleep_ms(500);
 
-    printf("\n=== bonanzaDisplay ===\n");
+    printf("\n=== bonanzaDisplay (LVGL + PIO + DMA) ===\n");
     printf("System clock: %lu MHz\n\n", clock_get_hz(clk_sys) / 1000000);
 
-    // --- Display hardware init ---
-    printf("Init SSD1322 (8080 mode)...\n");
-    ssd1322_init_bitbang();
+    // --- Display hardware init (PIO + DMA) ---
+    printf("Init SSD1322 (PIO 8080 mode)...\n");
+    ssd1322_init();
     printf("SSD1322 initialized.\n");
 
-    // Quick blink
-    ssd1322_bitbang_cmd(0xA5);  // ALL_ON
-    sleep_ms(300);
-    ssd1322_bitbang_cmd(0xA6);  // Normal mode
+    // Quick blink to confirm display alive
+    ssd1322_write_cmd(0xA5);  // ALL_ON
     sleep_ms(200);
+    ssd1322_write_cmd(0xA6);  // Normal mode
+    sleep_ms(100);
 
-    // Fill white
-    printf("Fill white...\n");
-    ssd1322_test_bitbang_fill(0xFF);
-    sleep_ms(2000);
+    // --- LVGL init ---
+    printf("Init LVGL...\n");
+    lv_init();
+    lv_tick_set_cb(pico_tick_get_cb);
+    lv_port_disp_init();
+    printf("LVGL ready.\n");
 
-    // Fill black
-    printf("Fill black...\n");
-    ssd1322_test_bitbang_fill(0x00);
-    sleep_ms(1000);
+    // --- Create a simple demo UI ---
+    lv_obj_t *scr = lv_screen_active();
 
-    // Draw test pattern: 4 horizontal bands
-    printf("Drawing test pattern...\n");
-    ssd1322_bitbang_cmd(0x15);
-    ssd1322_bitbang_data(0x1C);
-    ssd1322_bitbang_data(0x5B);
-    ssd1322_bitbang_cmd(0x75);
-    ssd1322_bitbang_data(0x00);
-    ssd1322_bitbang_data(0x3F);
-    ssd1322_bitbang_cmd(0x5C);
+    // Style: white text on black background
+    lv_obj_set_style_bg_color(scr, lv_color_black(), 0);
+    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 
-    for (int row = 0; row < 64; row++) {
-        for (int col = 0; col < 128; col++) {  // 128 bytes/row = 256 pixels
-            if (row < 16) {
-                ssd1322_bitbang_data(0xFF);                         // White
-            } else if (row < 32) {
-                ssd1322_bitbang_data((col % 2 == 0) ? 0xFF : 0x00); // Vertical stripes
-            } else if (row < 48) {
-                uint8_t g = (col * 15) / 128;
-                ssd1322_bitbang_data((g << 4) | g);                 // Gradient
-            } else {
-                ssd1322_bitbang_data(0x00);                         // Black
-            }
-        }
-    }
-    printf("Test pattern done:\n");
-    printf("  Top 1/4: solid white\n");
-    printf("  2nd 1/4: vertical stripes\n");
-    printf("  3rd 1/4: gradient (dark->bright)\n");
-    printf("  Bottom 1/4: black\n");
+    // Title label — large, centered near top
+    lv_obj_t *title = lv_label_create(scr);
+    lv_label_set_text(title, "bonanzaDisplay");
+    lv_obj_set_style_text_color(title, lv_color_white(), 0);
+    lv_obj_set_style_text_font(title, &lv_font_montserrat_14, 0);
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 4);
 
-    // Stay forever
-    uint32_t count = 0;
+    // Info label — smaller, centered below
+    lv_obj_t *info = lv_label_create(scr);
+    lv_label_set_text(info, "LVGL + PIO + DMA");
+    lv_obj_set_style_text_color(info, lv_color_white(), 0);
+    lv_obj_set_style_text_font(info, &lv_font_montserrat_10, 0);
+    lv_obj_align(info, LV_ALIGN_CENTER, 0, 4);
+
+    // Counter label — bottom, updates every frame
+    lv_obj_t *counter = lv_label_create(scr);
+    lv_label_set_text(counter, "Frame: 0");
+    lv_obj_set_style_text_color(counter, lv_color_white(), 0);
+    lv_obj_set_style_text_font(counter, &lv_font_montserrat_10, 0);
+    lv_obj_align(counter, LV_ALIGN_BOTTOM_MID, 0, -4);
+
+    printf("Entering LVGL main loop...\n");
+
+    // --- Main loop ---
+    uint32_t frame = 0;
+    char buf[32];
     while (1) {
-        printf("[%lu] display test active\n", count++);
-        sleep_ms(2000);
+        lv_timer_handler();  // Run LVGL tasks (render, animations, etc.)
+        sleep_ms(5);         // ~200 Hz poll rate, LVGL handles its own timing
+
+        // Update counter every 30 frames (~150ms)
+        if (frame % 30 == 0) {
+            snprintf(buf, sizeof(buf), "Frame: %lu", (unsigned long)frame);
+            lv_label_set_text(counter, buf);
+        }
+        frame++;
     }
 
     return 0;
