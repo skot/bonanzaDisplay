@@ -1,0 +1,74 @@
+; ==========================================================================
+; parallel_8080.pio — PIO program for Intel 8080 parallel write cycles
+; Used to drive SSD1322 OLED display data bus
+;
+; Pin mapping:
+;   OUT pins:  GPIO 0–7  (D0–D7, 8 data lines)
+;   SET pins:  GPIO 9    (WR# strobe)
+;
+; Each write cycle:
+;   1. Pull 8-bit data from TX FIFO
+;   2. Assert data on D0–D7
+;   3. Strobe WR# low then high (data latched on rising edge)
+;
+; Timing: At 150 MHz system clock, each PIO cycle = 6.67 ns
+;         WR# low time = (1 + T) * cycle_time
+;         Adjust T for SSD1322 timing requirements (min ~60ns WR pulse)
+; ==========================================================================
+
+.program parallel_8080
+.side_set 1 opt
+
+; Autopull threshold = 8 bits, shift OSR right
+; Side-set controls WR# (GPIO 9)
+
+.wrap_target
+    out pins, 8      side 1      ; Shift 8 bits to data pins, WR# = HIGH (idle)
+    nop              side 0 [7]  ; WR# = LOW, hold for 8 cycles (~53 ns @ 150 MHz)
+    nop              side 1 [3]  ; WR# = HIGH (latch), hold for 4 cycles
+.wrap
+
+% c-sdk {
+#include "hardware/clocks.h"
+
+static inline void parallel_8080_program_init(PIO pio, uint sm, uint offset,
+                                               uint data_base_pin, uint wr_pin,
+                                               float clk_div) {
+    // Configure data pins (GPIO 0–7) as PIO output
+    for (uint i = 0; i < 8; i++) {
+        pio_gpio_init(pio, data_base_pin + i);
+    }
+    // Configure WR# pin as PIO side-set output
+    pio_gpio_init(pio, wr_pin);
+
+    // Set pin directions: data pins and WR# as outputs
+    pio_sm_set_consecutive_pindirs(pio, sm, data_base_pin, 8, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, wr_pin, 1, true);
+
+    // Get default config from the program
+    pio_sm_config c = parallel_8080_program_get_default_config(offset);
+
+    // OUT pins: 8 consecutive pins starting at data_base_pin
+    sm_config_set_out_pins(&c, data_base_pin, 8);
+
+    // Side-set pin: WR#
+    sm_config_set_sideset_pins(&c, wr_pin);
+
+    // Autopull: pull 8 bits at a time, shift right
+    sm_config_set_out_shift(&c, true, true, 8);
+
+    // FIFO: use all 8 entries for TX (join RX into TX)
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+
+    // Clock divider
+    sm_config_set_clkdiv(&c, clk_div);
+
+    // Initialize WR# high (idle state)
+    pio_sm_set_pins_with_mask(pio, sm, (1u << wr_pin), (1u << wr_pin));
+
+    // Load configuration and start
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+%}

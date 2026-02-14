@@ -1,0 +1,28 @@
+# Build output
+build/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# IDE / editor
+.vscode/settings.json
+.vscode/c_cpp_properties.json
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated PIO headers
+src/display/parallel_8080.pio.h
+
+# Compiled objects
+*.o
+*.elf
+*.bin
+*.hex
+*.uf2
+*.map
+*.dis
