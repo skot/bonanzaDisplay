@@ -20,7 +20,7 @@ The display is connected via an **8080 8-bit parallel interface**, driven by the
 | Component | Description |
 |-----------|-------------|
 | Raspberry Pi Pico 2W | RP2350, dual Cortex-M33 @ 150 MHz, 520 KB SRAM, 4 MB flash |
-| SSD1322 OLED module | 256×64 pixels, 4-bit grayscale, 8080/6800 parallel interface |
+| [SSD1322 OLED module](https://www.aliexpress.us/item/3256808372011979.html) | 256×64 pixels, 4-bit grayscale, 8080/6800 parallel interface |
 
 ### Wiring — Pico 2W to SSD1322 Display Module
 
@@ -47,29 +47,34 @@ The display is connected via an **8080 8-bit parallel interface**, driven by the
 ### Pin Map Diagram
 
 ```
-         Pico 2W                    SSD1322 Module
-        ┌────────┐                  ┌────────────┐
-   GP0  │ 1    40│ VBUS        GND  │ 1          │
-   GP1  │ 2    39│ VSYS     VCC_IN  │ 2          │
-   GND  │ 3    38│ GND          NC  │ 3          │
-   GP2  │ 4    37│ 3V3_EN   D0/CLK  │ 4          │
-   GP3  │ 5    36│ 3V3 ────────────►│ 2 (VCC)    │
-   GP4  │ 6    35│ ADC_VREF D1/DIN  │ 5          │
-   GP5  │ 7    34│ GP28        D2   │ 6          │
-   GND  │ 8    33│ GND ───────────►│ 1 (GND)    │
-   GP6  │ 9    32│ GP27        D3   │ 7          │
-   GP7  │10    31│ GP26        D4   │ 8          │
-   GP8  │11    30│ RUN         D5   │ 9          │
-   GP9  │12    29│ GP22        D6   │ 10         │
-   GND  │13    28│ GND         D7   │ 11         │
-  GP10  │14    27│ GP21     E/RD#   │ 12         │
-  GP11  │15    26│ GP20     R/W#    │ 13         │
-  GP12  │16    25│ GP19     D/C#    │ 14         │
-  GP13  │17    24│ GP18     RES#    │ 15         │
-   GND  │18    23│ GND      CS#     │ 16         │
-  GP14  │19    22│ GP17             └────────────┘
-  GP15  │20    21│ GP16
-        └────────┘
+         Pico 2W                    SSD1322 Module (2×8 header)
+        ┌────────┐                  ┌─────┬─────┐
+   GP0  │ 1    40│ VBUS        GND  │  1  │  2  │ VCC_IN
+   GP1  │ 2    39│ VSYS         NC  │  3  │  4  │ D0/CLK
+   GND  │ 3    38│ GND      D1/DIN  │  5  │  6  │ D2
+   GP2  │ 4    37│ 3V3_EN       D3  │  7  │  8  │ D4
+   GP3  │ 5    36│ 3V3          D5  │  9  │ 10  │ D6
+   GP4  │ 6    35│ ADC_VREF     D7  │ 11  │ 12  │ E/RD#
+   GP5  │ 7    34│ GP28      R/W#   │ 13  │ 14  │ D/C#
+   GND  │ 8    33│ GND       RES#   │ 15  │ 16  │ CS#
+   GP6  │ 9    32│ GP27             └─────┴─────┘
+   GP7  │10    31│ GP26
+   GP8  │11    30│ RUN       Connections:
+   GP9  │12    29│ GP22       GP0  ──► Pin 4  (D0/CLK)
+   GND  │13    28│ GND        GP1  ──► Pin 5  (D1/DIN)
+  GP10  │14    27│ GP21       GP2  ──► Pin 6  (D2)
+  GP11  │15    26│ GP20       GP3  ──► Pin 7  (D3)
+  GP12  │16    25│ GP19       GP4  ──► Pin 8  (D4)
+  GP13  │17    24│ GP18       GP5  ──► Pin 9  (D5)
+   GND  │18    23│ GND        GP6  ──► Pin 10 (D6)
+  GP14  │19    22│ GP17       GP7  ──► Pin 11 (D7)
+  GP15  │20    21│ GP16       GP8  ──► Pin 12 (E/RD#)
+        └────────┘            GP9  ──► Pin 13 (R/W#)
+                              GP10 ──► Pin 14 (D/C#)
+                              GP11 ──► Pin 15 (RES#)
+                              GP12 ──► Pin 16 (CS#)
+                              3V3  ──► Pin 2  (VCC_IN)
+                              GND  ──► Pin 1  (GND)
 ```
 
 ## Building
