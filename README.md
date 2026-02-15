@@ -166,4 +166,4 @@ Available sizes: 8px, 12px, 16px — all at 1bpp for crisp pixel rendering.
 
 ## License
 
-TBD
+GPL v3 -- FOSS || GTFO
