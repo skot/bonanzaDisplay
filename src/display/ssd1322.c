@@ -28,6 +28,13 @@ static uint    pio_offset  = 0;
 static int     dma_channel = -1;
 static volatile bool dma_busy = false;
 static void    (*dma_complete_callback)(void) = NULL;
+static uint8_t dma_bus_buf[(SSD1322_WIDTH / 2) * SSD1322_HEIGHT];
+
+// Pin mask for the display data bus, respecting the logical D0..D7 map.
+#define PIN_DATA_MASK ((1u << PIN_DB0) | (1u << PIN_DB1) | \
+                       (1u << PIN_DB2) | (1u << PIN_DB3) | \
+                       (1u << PIN_DB4) | (1u << PIN_DB5) | \
+                       (1u << PIN_DB6) | (1u << PIN_DB7))
 
 // ==========================================================================
 // DMA IRQ Handler
@@ -60,11 +67,38 @@ static inline void pio_wait_idle(void) {
     sleep_us(1);
 }
 
+static inline uint8_t bus_order_byte(uint8_t byte) {
+#if PIN_DATA_BIT_REVERSE
+    byte = ((byte & 0xF0) >> 4) | ((byte & 0x0F) << 4);
+    byte = ((byte & 0xCC) >> 2) | ((byte & 0x33) << 2);
+    byte = ((byte & 0xAA) >> 1) | ((byte & 0x55) << 1);
+#endif
+    return byte;
+}
+
 /**
  * Push a single byte into PIO TX FIFO.
  */
 static inline void pio_put_byte(uint8_t byte) {
-    pio_sm_put_blocking(pio_inst, pio_sm, (uint32_t)byte);
+    pio_sm_put_blocking(pio_inst, pio_sm, (uint32_t)bus_order_byte(byte));
+}
+
+/**
+ * Drive logical SSD1322 data bits D0..D7 onto their configured GPIO pins.
+ */
+static inline void gpio_put_data_bus(uint8_t byte) {
+    uint32_t value = 0;
+
+    if (byte & (1u << 0)) value |= 1u << PIN_DB0;
+    if (byte & (1u << 1)) value |= 1u << PIN_DB1;
+    if (byte & (1u << 2)) value |= 1u << PIN_DB2;
+    if (byte & (1u << 3)) value |= 1u << PIN_DB3;
+    if (byte & (1u << 4)) value |= 1u << PIN_DB4;
+    if (byte & (1u << 5)) value |= 1u << PIN_DB5;
+    if (byte & (1u << 6)) value |= 1u << PIN_DB6;
+    if (byte & (1u << 7)) value |= 1u << PIN_DB7;
+
+    gpio_put_masked(PIN_DATA_MASK, value);
 }
 
 // ==========================================================================
@@ -157,6 +191,14 @@ void ssd1322_flush_dma(const uint8_t *buf, uint16_t len, void (*callback)(void))
     pio_wait_idle();
     gpio_put(PIN_DC, 1);
 
+    const uint8_t *dma_src = buf;
+#if PIN_DATA_BIT_REVERSE
+    for (uint16_t i = 0; i < len; i++) {
+        dma_bus_buf[i] = bus_order_byte(buf[i]);
+    }
+    dma_src = dma_bus_buf;
+#endif
+
     // Configure DMA transfer
     dma_complete_callback = callback;
     dma_busy = true;
@@ -171,7 +213,7 @@ void ssd1322_flush_dma(const uint8_t *buf, uint16_t len, void (*callback)(void))
         dma_channel,
         &cfg,
         &pio_inst->txf[pio_sm],  // Write to PIO TX FIFO
-        buf,                      // Read from framebuffer
+        dma_src,                  // Read from bus-order framebuffer
         len,                      // Transfer count
         true                      // Start immediately
     );
@@ -356,11 +398,14 @@ static void bitbang_gpio_setup(void) {
     gpio_set_dir(PIN_WR, GPIO_OUT);
     gpio_put(PIN_WR, 1);
 
-    // Now set up data pins
+    uint8_t data_pins[8] = {
+        PIN_DB0, PIN_DB1, PIN_DB2, PIN_DB3,
+        PIN_DB4, PIN_DB5, PIN_DB6, PIN_DB7
+    };
     for (int i = 0; i < 8; i++) {
-        gpio_set_function(PIN_DATA_BASE + i, GPIO_FUNC_SIO);
-        gpio_set_dir(PIN_DATA_BASE + i, GPIO_OUT);
-        gpio_put(PIN_DATA_BASE + i, 0);
+        gpio_set_function(data_pins[i], GPIO_FUNC_SIO);
+        gpio_set_dir(data_pins[i], GPIO_OUT);
+        gpio_put(data_pins[i], 0);
     }
 
     bitbang_mode = true;
@@ -370,10 +415,8 @@ static void bitbang_write_byte(uint8_t byte, bool is_data) {
     gpio_put(PIN_DC, is_data ? 1 : 0);
     sleep_us(1);  // DC setup time
 
-    // Set all 8 data pins atomically using masked write
-    uint32_t data_mask = 0xFF << PIN_DATA_BASE;  // GPIO 0-7
-    uint32_t data_value = ((uint32_t)byte) << PIN_DATA_BASE;
-    gpio_put_masked(data_mask, data_value);
+    // Set all 8 logical D0..D7 pins atomically.
+    gpio_put_data_bus(byte);
 
     sleep_us(1);  // Data setup time
 
@@ -543,7 +586,16 @@ void ssd1322_debug_gpio_state(void) {
     // Read GPIO output register to verify pin states
     uint32_t gpio_out = sio_hw->gpio_out;
     printf("  GPIO output register: 0x%08lX\n", (unsigned long)gpio_out);
-    printf("  D0-D7: 0x%02lX\n", (unsigned long)(gpio_out & 0xFF));
+    uint8_t data_bus = 0;
+    data_bus |= ((gpio_out >> PIN_DB0) & 1u) << 0;
+    data_bus |= ((gpio_out >> PIN_DB1) & 1u) << 1;
+    data_bus |= ((gpio_out >> PIN_DB2) & 1u) << 2;
+    data_bus |= ((gpio_out >> PIN_DB3) & 1u) << 3;
+    data_bus |= ((gpio_out >> PIN_DB4) & 1u) << 4;
+    data_bus |= ((gpio_out >> PIN_DB5) & 1u) << 5;
+    data_bus |= ((gpio_out >> PIN_DB6) & 1u) << 6;
+    data_bus |= ((gpio_out >> PIN_DB7) & 1u) << 7;
+    printf("  D0-D7: 0x%02X\n", data_bus);
     printf("  RD# (GPIO%d): %d\n", PIN_RD, (gpio_out >> PIN_RD) & 1);
     printf("  WR# (GPIO%d): %d\n", PIN_WR, (gpio_out >> PIN_WR) & 1);
     printf("  DC#  (GPIO%d): %d\n", PIN_DC, (gpio_out >> PIN_DC) & 1);

@@ -3,8 +3,11 @@
 ; Used to drive SSD1322 OLED display data bus
 ;
 ; Pin mapping:
-;   OUT pins:  GPIO 0–7  (D0–D7, 8 data lines)
+;   OUT pins:  GPIO 0–7  (contiguous data GPIO block)
 ;   SET pins:  GPIO 9    (WR# strobe)
+;
+; The current board wiring maps SSD1322 D0..D7 to GPIO7..GPIO0.
+; The C driver bit-reverses bytes before writing them to the PIO FIFO.
 ;
 ; Each write cycle:
 ;   1. Pull 8-bit data from TX FIFO
@@ -34,7 +37,7 @@
 static inline void parallel_8080_program_init(PIO pio, uint sm, uint offset,
                                                uint data_base_pin, uint wr_pin,
                                                float clk_div) {
-    // Configure data pins (GPIO 0–7) as PIO output
+    // Configure the contiguous data GPIO block as PIO output
     for (uint i = 0; i < 8; i++) {
         pio_gpio_init(pio, data_base_pin + i);
     }

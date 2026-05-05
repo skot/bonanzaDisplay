@@ -1,6 +1,6 @@
-# bonanzaDisplay
+# bonanzaDisplay-fw
 
-Firmware for driving a **SSD1322-based 256×64 OLED display** from a **Raspberry Pi Pico 2W** using the **LVGL** graphics library.
+Firmware for driving a **SSD1322-based 256×64 OLED display** from a **RP2350** on the bitaxeBonanza display board using the **LVGL** graphics library.
 
 The display is connected via an **8080 8-bit parallel interface**, driven by the RP2350's PIO state machine with DMA for zero-CPU-overhead framebuffer transfers.
 
@@ -17,65 +17,28 @@ The display is connected via an **8080 8-bit parallel interface**, driven by the
 
 ### Components
 
-| Component | Description |
-|-----------|-------------|
-| Raspberry Pi Pico 2W | RP2350, dual Cortex-M33 @ 150 MHz, 520 KB SRAM, 4 MB flash |
-| [SSD1322 OLED module](https://www.aliexpress.us/item/3256808372011979.html) | 256×64 pixels, 4-bit grayscale, 8080/6800 parallel interface |
+The [bonanzaDisplay](https://github.com/bitaxeorg/bonanzaDisplay) hardware is attached to the [bitaxeBonanza-1002x](https://github.com/bitaxeorg/bitaxeBonanza/tree/1002x) via a 10 pin FPC that delivers 12VDC power, I2C and GPIO. The bonanzaDisplay is controlled by a RP2350 microcontroller.
 
-### Wiring — Pico 2W to SSD1322 Display Module
+### Wiring — RP2350 to SSD1322 Display
 
-| Pico 2W Pin | GPIO | Signal | Display Pin | Description |
-|-------------|------|--------|-------------|-------------|
-| Pin 1 | GP0 | D0 | 4 (D0/CLK) | Data bit 0 |
-| Pin 2 | GP1 | D1 | 5 (D1/DIN) | Data bit 1 |
-| Pin 4 | GP2 | D2 | 6 (D2) | Data bit 2 |
-| Pin 5 | GP3 | D3 | 7 (D3) | Data bit 3 |
-| Pin 6 | GP4 | D4 | 8 (D4) | Data bit 4 |
-| Pin 7 | GP5 | D5 | 9 (D5) | Data bit 5 |
-| Pin 9 | GP6 | D6 | 10 (D6) | Data bit 6 |
-| Pin 10 | GP7 | D7 | 11 (D7) | Data bit 7 |
-| Pin 11 | GP8 | RD# | 12 (E/RD#) | Read strobe (active low) |
-| Pin 12 | GP9 | WR# | 13 (R/W#) | Write strobe (active low) |
-| Pin 14 | GP10 | DC# | 14 (D/C#) | Data/Command select |
-| Pin 15 | GP11 | RES# | 15 (RES#) | Reset (active low) |
-| Pin 16 | GP12 | CS# | 16 (CS#) | Chip select (active low) |
-| Pin 36 | 3V3 OUT | 3V3 | 2 (VCC_IN) | Power supply |
-| Pin 38 | GND | GND | 1 (GND) | Ground |
+| RP2350 | GPIO   | Signal | Display Pin | Description |
+|------- |--------|--------|-------------|-------------|
+| Pin 10 | GPIO7  | D0     | 13 (D0/CLK) | Data bit 0 |
+| Pin 9  | GPIO6  | D1     | 12 (D1/DIN) | Data bit 1 |
+| Pin 8  | GPIO5  | D2     | 11 (D2)     | Data bit 2 |
+| Pin 7  | GPIO4  | D3     | 10 (D3)     | Data bit 3 |
+| Pin 5  | GPIO3  | D4     | 9 (D4)      | Data bit 4 |
+| Pin 4  | GPIO2  | D5     | 8 (D5)      | Data bit 5 |
+| Pin 3  | GPIO1  | D6     | 7 (D6)      | Data bit 6 |
+| Pin 2  | GPIO0  | D7     | 6 (D7)      | Data bit 7 |
+| Pin 12 | GPIO8  | RD#    | 14 (E/RD#)  | Read strobe (active low) |
+| Pin 13 | GPIO9  | WR#    | 15 (R/W#)   | Write strobe (active low) |
+| Pin 14 | GPIO10 | DC#    | 18 (D/C#)   | Data/Command select |
+| Pin 16 | GPIO12 | RES#   | 20 (RES#)   | Reset (active low) |
+| Pin 15 | GPIO11 | CS#    | 19 (CS#)    | Chip select (active low) |
 
-> **Note:** The display module must be configured for **8080 parallel mode** (BS0/BS1 resistors). Pin 3 (NC) is not connected.
 
-### Pin Map Diagram
-
-```
-         Pico 2W                    SSD1322 Module (2×8 header)
-        ┌────────┐                  ┌─────┬─────┐
-   GP0  │ 1    40│ VBUS        GND  │  1  │  2  │ VCC_IN
-   GP1  │ 2    39│ VSYS         NC  │  3  │  4  │ D0/CLK
-   GND  │ 3    38│ GND      D1/DIN  │  5  │  6  │ D2
-   GP2  │ 4    37│ 3V3_EN       D3  │  7  │  8  │ D4
-   GP3  │ 5    36│ 3V3          D5  │  9  │ 10  │ D6
-   GP4  │ 6    35│ ADC_VREF     D7  │ 11  │ 12  │ E/RD#
-   GP5  │ 7    34│ GP28      R/W#   │ 13  │ 14  │ D/C#
-   GND  │ 8    33│ GND       RES#   │ 15  │ 16  │ CS#
-   GP6  │ 9    32│ GP27             └─────┴─────┘
-   GP7  │10    31│ GP26
-   GP8  │11    30│ RUN       Connections:
-   GP9  │12    29│ GP22       GP0  ──► Pin 4  (D0/CLK)
-   GND  │13    28│ GND        GP1  ──► Pin 5  (D1/DIN)
-  GP10  │14    27│ GP21       GP2  ──► Pin 6  (D2)
-  GP11  │15    26│ GP20       GP3  ──► Pin 7  (D3)
-  GP12  │16    25│ GP19       GP4  ──► Pin 8  (D4)
-  GP13  │17    24│ GP18       GP5  ──► Pin 9  (D5)
-   GND  │18    23│ GND        GP6  ──► Pin 10 (D6)
-  GP14  │19    22│ GP17       GP7  ──► Pin 11 (D7)
-  GP15  │20    21│ GP16       GP8  ──► Pin 12 (E/RD#)
-        └────────┘            GP9  ──► Pin 13 (R/W#)
-                              GP10 ──► Pin 14 (D/C#)
-                              GP11 ──► Pin 15 (RES#)
-                              GP12 ──► Pin 16 (CS#)
-                              3V3  ──► Pin 2  (VCC_IN)
-                              GND  ──► Pin 1  (GND)
-```
+> **Note:** The display is configured for **8080 parallel mode**
 
 ## Building
 

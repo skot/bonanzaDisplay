@@ -7,6 +7,7 @@ project(bonanzaDisplay C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+option(BONANZA_DISPLAY_BRINGUP_TEST "Build simple serial + bitbang SSD1322 bring-up firmware" OFF)
 
 # Initialize the Pico SDK
 pico_sdk_init()
@@ -64,6 +65,10 @@ target_link_libraries(${PROJECT_NAME}
     hardware_timer
     lvgl
 )
+
+if(BONANZA_DISPLAY_BRINGUP_TEST)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE BONANZA_DISPLAY_BRINGUP_TEST=1)
+endif()
 
 # USB output for printf debugging, disable UART
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
