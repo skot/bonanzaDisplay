@@ -8,5 +8,6 @@
 LV_FONT_DECLARE(font_pixel_8);
 LV_FONT_DECLARE(font_pixel_12);
 LV_FONT_DECLARE(font_pixel_16);
+LV_FONT_DECLARE(lv_font_portfolio_6x8);
 
 #endif // FONTS_H

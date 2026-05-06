@@ -30,11 +30,9 @@
 #define PIN_CS              11        // Chip select (active low)
 #define PIN_RES             12        // Reset (active low)
 
-// --- Input Devices (TBD — reserved range) ---
-// #define PIN_ENC_A        13        // Rotary encoder A
-// #define PIN_ENC_B        14        // Rotary encoder B
-// #define PIN_ENC_SW       15        // Rotary encoder switch
-// #define PIN_BTN_1        16        // Button 1
-// #define PIN_BTN_2        17        // Button 2
+// --- Dial Switch (active low to COM/GND) ---
+#define PIN_DIAL_CCW        13        // Counterclockwise contact
+#define PIN_DIAL_CW         14        // Clockwise contact
+#define PIN_DIAL_SW         15        // Push switch contact
 
 #endif // PIN_CONFIG_H

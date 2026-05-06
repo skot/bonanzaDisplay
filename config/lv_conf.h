@@ -74,8 +74,11 @@
 #define LV_FONT_MONTSERRAT_44           0
 #define LV_FONT_MONTSERRAT_46           0
 #define LV_FONT_MONTSERRAT_48           0
+#define LV_FONT_UNSCII_8                0
+#define LV_FONT_UNSCII_16               0
 
-#define LV_FONT_DEFAULT                 &lv_font_montserrat_14
+#define LV_FONT_CUSTOM_DECLARE          LV_FONT_DECLARE(lv_font_portfolio_6x8)
+#define LV_FONT_DEFAULT                 &lv_font_portfolio_6x8
 
 // ==========================================================================
 // Widgets (enable only what's needed for dashboard)

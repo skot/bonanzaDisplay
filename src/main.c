@@ -20,6 +20,7 @@
 #include "lv_port_disp.h"
 #include "pin_config.h"
 #include "fonts.h"
+#include "dial_switch.h"
 
 // ==========================================================================
 // LVGL Tick — Pico SDK monotonic ms clock
@@ -124,6 +125,12 @@ int main(void) {
     ssd1322_init();
     debug_log("SSD1322 initialized.\n");
 
+    // --- Dial switch init ---
+    debug_log("Init dial switch...\n");
+    dial_switch_init();
+    debug_log("Dial switch ready: CCW=GPIO%d CW=GPIO%d SW=GPIO%d\n",
+              PIN_DIAL_CCW, PIN_DIAL_CW, PIN_DIAL_SW);
+
     // Quick blink to confirm display alive
     debug_log("SSD1322 all-on blink...\n");
     ssd1322_write_cmd(0xA5);  // ALL_ON
@@ -148,39 +155,89 @@ int main(void) {
 
     // Title label — large, centered near top
     lv_obj_t *title = lv_label_create(scr);
-    lv_label_set_text(title, "bonanzaDisplay");
+    lv_label_set_text(title, "Dial Switch");
     lv_obj_set_style_text_color(title, lv_color_white(), 0);
-    lv_obj_set_style_text_font(title, &font_pixel_16, 0);
+    lv_obj_set_style_text_font(title, &lv_font_portfolio_6x8, 0);
     lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 4);
 
-    // Info label — smaller, centered below
-    lv_obj_t *info = lv_label_create(scr);
-    lv_label_set_text(info, "LVGL + PIO + DMA");
-    lv_obj_set_style_text_color(info, lv_color_white(), 0);
-    lv_obj_set_style_text_font(info, &font_pixel_12, 0);
-    lv_obj_align(info, LV_ALIGN_CENTER, 0, 4);
+    lv_obj_t *position_label = lv_label_create(scr);
+    lv_label_set_text(position_label, "POS +0");
+    lv_obj_set_style_text_color(position_label, lv_color_white(), 0);
+    lv_obj_set_style_text_font(position_label, &lv_font_portfolio_6x8, 0);
+    lv_obj_align(position_label, LV_ALIGN_LEFT_MID, 6, -8);
 
-    // Counter label — bottom, updates every frame
-    lv_obj_t *counter = lv_label_create(scr);
-    lv_label_set_text(counter, "Frame: 0");
-    lv_obj_set_style_text_color(counter, lv_color_white(), 0);
-    lv_obj_set_style_text_font(counter, &font_pixel_8, 0);
-    lv_obj_align(counter, LV_ALIGN_BOTTOM_MID, 0, -4);
+    lv_obj_t *direction_label = lv_label_create(scr);
+    lv_label_set_text(direction_label, "DIR --");
+    lv_obj_set_style_text_color(direction_label, lv_color_white(), 0);
+    lv_obj_set_style_text_font(direction_label, &lv_font_portfolio_6x8, 0);
+    lv_obj_align(direction_label, LV_ALIGN_RIGHT_MID, -8, -8);
+
+    lv_obj_t *switch_label = lv_label_create(scr);
+    lv_label_set_text(switch_label, "SW UP");
+    lv_obj_set_style_text_color(switch_label, lv_color_white(), 0);
+    lv_obj_set_style_text_font(switch_label, &lv_font_portfolio_6x8, 0);
+    lv_obj_align(switch_label, LV_ALIGN_LEFT_MID, 6, 10);
+
+    lv_obj_t *counts_label = lv_label_create(scr);
+    lv_label_set_text(counts_label, "CW 0  CCW 0  P 0");
+    lv_obj_set_style_text_color(counts_label, lv_color_white(), 0);
+    lv_obj_set_style_text_font(counts_label, &lv_font_portfolio_6x8, 0);
+    lv_obj_align(counts_label, LV_ALIGN_BOTTOM_MID, 0, -4);
 
     debug_log("Entering LVGL main loop...\n");
 
     // --- Main loop ---
     uint32_t frame = 0;
     uint32_t last_heartbeat_ms = to_ms_since_boot(get_absolute_time());
-    char buf[32];
+    int32_t shown_position = INT32_MIN;
+    uint32_t shown_cw_count = UINT32_MAX;
+    uint32_t shown_ccw_count = UINT32_MAX;
+    uint32_t shown_press_count = UINT32_MAX;
+    uint8_t shown_phase = UINT8_MAX;
+    int8_t shown_quadrature_accum = INT8_MAX;
+    bool shown_switch_pressed = false;
+    dial_switch_dir_t shown_dir = DIAL_SWITCH_DIR_NONE;
+    char buf[40];
     while (1) {
+        dial_switch_update();
         lv_timer_handler();  // Run LVGL tasks (render, animations, etc.)
         sleep_ms(5);         // ~200 Hz poll rate, LVGL handles its own timing
 
-        // Update counter every 30 frames (~150ms)
-        if (frame % 30 == 0) {
-            snprintf(buf, sizeof(buf), "Frame: %lu", (unsigned long)frame);
-            lv_label_set_text(counter, buf);
+        const dial_switch_state_t *dial = dial_switch_get_state();
+        if (dial->position != shown_position) {
+            snprintf(buf, sizeof(buf), "POS %+ld", (long)dial->position);
+            lv_label_set_text(position_label, buf);
+            shown_position = dial->position;
+        }
+
+        if (dial->last_dir != shown_dir) {
+            snprintf(buf, sizeof(buf), "DIR %s", dial_switch_dir_name(dial->last_dir));
+            lv_label_set_text(direction_label, buf);
+            shown_dir = dial->last_dir;
+        }
+
+        if (dial->switch_pressed != shown_switch_pressed) {
+            lv_label_set_text(switch_label, dial->switch_pressed ? "SW DOWN" : "SW UP");
+            shown_switch_pressed = dial->switch_pressed;
+        }
+
+        if (dial->cw_count != shown_cw_count ||
+            dial->ccw_count != shown_ccw_count ||
+            dial->press_count != shown_press_count ||
+            dial->phase != shown_phase ||
+            dial->quadrature_accum != shown_quadrature_accum) {
+            snprintf(buf, sizeof(buf), "CW %lu CCW %lu P %lu PH %u%u",
+                     (unsigned long)dial->cw_count,
+                     (unsigned long)dial->ccw_count,
+                     (unsigned long)dial->press_count,
+                     (unsigned)((dial->phase >> 1) & 1u),
+                     (unsigned)(dial->phase & 1u));
+            lv_label_set_text(counts_label, buf);
+            shown_cw_count = dial->cw_count;
+            shown_ccw_count = dial->ccw_count;
+            shown_press_count = dial->press_count;
+            shown_phase = dial->phase;
+            shown_quadrature_accum = dial->quadrature_accum;
         }
 
         uint32_t now_ms = to_ms_since_boot(get_absolute_time());

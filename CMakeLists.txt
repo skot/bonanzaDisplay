@@ -33,12 +33,14 @@ set_target_properties(lvgl PROPERTIES SOURCES "${LVGL_SOURCES}")
 add_executable(${PROJECT_NAME}
     src/main.c
     src/display/ssd1322.c
+    src/input/dial_switch.c
     src/lvgl_port/lv_port_disp.c
     src/lvgl_port/lv_port_indev.c
     src/ui/ui_dashboard.c
     src/fonts/font_pixel_8.c
     src/fonts/font_pixel_12.c
     src/fonts/font_pixel_16.c
+    src/fonts/lv_font_portfolio_6x8.c
 )
 
 # --------------------------------------------------------------------------
@@ -51,6 +53,7 @@ pico_generate_pio_header(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/display
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/input
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lvgl_port
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/fonts

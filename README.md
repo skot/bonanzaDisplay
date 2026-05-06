@@ -37,8 +37,18 @@ The [bonanzaDisplay](https://github.com/bitaxeorg/bonanzaDisplay) hardware is at
 | Pin 16 | GPIO12 | RES#   | 20 (RES#)   | Reset (active low) |
 | Pin 15 | GPIO11 | CS#    | 19 (CS#)    | Chip select (active low) |
 
-
 > **Note:** The display is configured for **8080 parallel mode**
+
+### Dial Switch
+The bonanzaDisplay has a SIQ-02FVS3 push-button jog wheel on it for interacting with the display. It is connected to the RP2350:
+
+| Dial Switch Pin  | Function     | RP2350 | GPIO   |
+|------------------|--------------|--------|--------|
+| Counterclockwise | Quadrature A | Pin 17 | GPIO13 |
+| Clockwise        | Quadrature B | Pin 18 | GPIO14 |
+| Switch           | Push switch  | Pin 19 | GPIO15 |
+
+The Counterclockwise and Clockwise pins are active-low quadrature phases. Both phase pins use pull-ups and connect to COM/GND through the dial contacts as the wheel rotates. Direction is decoded from the A/B phase sequence across a full detent. The Switch pin is also active-low and connects to COM/GND while the dial is pressed.
 
 ## Building
 
