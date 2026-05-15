@@ -23,19 +23,19 @@ The [bonanzaDisplay](https://github.com/bitaxeorg/bonanzaDisplay) hardware is at
 
 | RP2350 | GPIO   | Signal | Display Pin | Description |
 |------- |--------|--------|-------------|-------------|
-| Pin 10 | GPIO7  | D0     | 13 (D0/CLK) | Data bit 0 |
-| Pin 9  | GPIO6  | D1     | 12 (D1/DIN) | Data bit 1 |
-| Pin 8  | GPIO5  | D2     | 11 (D2)     | Data bit 2 |
-| Pin 7  | GPIO4  | D3     | 10 (D3)     | Data bit 3 |
-| Pin 5  | GPIO3  | D4     | 9 (D4)      | Data bit 4 |
-| Pin 4  | GPIO2  | D5     | 8 (D5)      | Data bit 5 |
-| Pin 3  | GPIO1  | D6     | 7 (D6)      | Data bit 6 |
-| Pin 2  | GPIO0  | D7     | 6 (D7)      | Data bit 7 |
-| Pin 12 | GPIO8  | RD#    | 14 (E/RD#)  | Read strobe (active low) |
-| Pin 13 | GPIO9  | WR#    | 15 (R/W#)   | Write strobe (active low) |
+| Pin 2  | GPIO0  | D0     | 13 (D0)     | Data bit 0 |
+| Pin 3  | GPIO1  | D1     | 12 (D1)     | Data bit 1 |
+| Pin 4  | GPIO2  | D2     | 11 (D2)     | Data bit 2 |
+| Pin 5  | GPIO3  | D3     | 10 (D3)     | Data bit 3 |
+| Pin 7  | GPIO4  | D4     | 9 (D4)      | Data bit 4 |
+| Pin 8  | GPIO5  | D5     | 8 (D5)      | Data bit 5 |
+| Pin 9  | GPIO6  | D6     | 7 (D6)      | Data bit 6 |
+| Pin 10 | GPIO7  | D7     | 6 (D7)      | Data bit 7 |
+| Pin 12 | GPIO8  | RES#   | 20 (RES#)   | Reset (active low) |
+| Pin 13 | GPIO9  | CS#    | 19 (CS#)    | Chip select (active low) |
 | Pin 14 | GPIO10 | DC#    | 18 (D/C#)   | Data/Command select |
-| Pin 16 | GPIO12 | RES#   | 20 (RES#)   | Reset (active low) |
-| Pin 15 | GPIO11 | CS#    | 19 (CS#)    | Chip select (active low) |
+| Pin 15 | GPIO11 | R/W#   | 15 (R/W#)   | Write strobe (active low) |
+| Pin 16 | GPIO12 | E/RD#  | 14 (E/RD#)  | Read strobe (active low) |
 
 > **Note:** The display is configured for **8080 parallel mode**
 
@@ -44,9 +44,9 @@ The bonanzaDisplay has a SIQ-02FVS3 push-button jog wheel on it for interacting 
 
 | Dial Switch Pin  | Function     | RP2350 | GPIO   |
 |------------------|--------------|--------|--------|
-| Counterclockwise | Quadrature A | Pin 17 | GPIO13 |
-| Clockwise        | Quadrature B | Pin 18 | GPIO14 |
-| Switch           | Push switch  | Pin 19 | GPIO15 |
+| Counterclockwise | Quadrature A | Pin 19 | GPIO15 |
+| Clockwise        | Quadrature B | Pin 17 | GPIO13 |
+| Switch           | Push switch  | Pin 18 | GPIO14 |
 
 The Counterclockwise and Clockwise pins are active-low quadrature phases. Both phase pins use pull-ups and connect to COM/GND through the dial contacts as the wheel rotates. Direction is decoded from the A/B phase sequence across a full detent. The Switch pin is also active-low and connects to COM/GND while the dial is pressed.
 

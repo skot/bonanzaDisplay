@@ -4,10 +4,9 @@
 ;
 ; Pin mapping:
 ;   OUT pins:  GPIO 0–7  (contiguous data GPIO block)
-;   SET pins:  GPIO 9    (WR# strobe)
+;   SIDE pin:  configured WR# GPIO
 ;
-; The current board wiring maps SSD1322 D0..D7 to GPIO7..GPIO0.
-; The C driver bit-reverses bytes before writing them to the PIO FIFO.
+; rev2 maps SSD1322 D0..D7 to GPIO0..GPIO7.
 ;
 ; Each write cycle:
 ;   1. Pull 8-bit data from TX FIFO
@@ -23,7 +22,7 @@
 .side_set 1 opt
 
 ; Autopull threshold = 8 bits, shift OSR right
-; Side-set controls WR# (GPIO 9)
+; Side-set controls WR#
 
 .wrap_target
     out pins, 8      side 1      ; Shift 8 bits to data pins, WR# = HIGH (idle)
