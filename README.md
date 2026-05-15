@@ -17,7 +17,7 @@ The display is connected via an **8080 8-bit parallel interface**, driven by the
 
 ### Components
 
-The [bonanzaDisplay](https://github.com/bitaxeorg/bonanzaDisplay) hardware is attached to the [bitaxeBonanza-1002x](https://github.com/bitaxeorg/bitaxeBonanza/tree/1002x) via a 10 pin FPC that delivers 12VDC power, I2C and GPIO. The bonanzaDisplay is controlled by a RP2350 microcontroller.
+The [bonanzaDisplay](https://github.com/bitaxeorg/bonanzaDisplay) v2 hardware is attached to the [bitaxeBonanza-1002x](https://github.com/bitaxeorg/bitaxeBonanza/tree/1002x) via a 10 pin FPC that delivers 12VDC power, I2C and GPIO. The bonanzaDisplay is controlled by a RP2350 microcontroller.
 
 ### Wiring — RP2350 to SSD1322 Display
 

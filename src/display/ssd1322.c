@@ -310,11 +310,13 @@ static void ssd1322_init_sequence(void) {
     // Set start line to 0
     ssd1322_cmd_with_args(SSD1322_CMD_SET_START_LINE, (uint8_t[]){0x00}, 1);
 
-    // Set re-map and dual COM line mode
-    // Byte 0: [0] = column address remap, [1] = nibble remap,
-    //         [2] = horizontal address increment, [4] = COM remap
+    // Set re-map and dual COM line mode.
+    // Byte 0: [0] = address increment mode, [1] = column address remap,
+    //         [2] = nibble remap, [4] = COM scan direction remap.
+    // rev2 mounts the panel 180 degrees from the original orientation:
+    // flip columns, use normal COM scan, and keep nibble remap enabled.
     // Byte 1: [4] = COM split odd/even, [0] = dual COM mode
-    ssd1322_cmd_with_args(SSD1322_CMD_SET_REMAP, (uint8_t[]){0x14, 0x11}, 2);
+    ssd1322_cmd_with_args(SSD1322_CMD_SET_REMAP, (uint8_t[]){0x06, 0x11}, 2);
 
     // Set GPIO (disable)
     ssd1322_cmd_with_args(SSD1322_CMD_SET_GPIO, (uint8_t[]){0x00}, 1);
@@ -518,7 +520,7 @@ void ssd1322_init_bitbang(void) {
     bitbang_cmd_with_args(0xCA, (uint8_t[]){0x3F}, 1);          // Mux ratio 64
     bitbang_cmd_with_args(0xA2, (uint8_t[]){0x00}, 1);          // Display offset 0
     bitbang_cmd_with_args(0xA1, (uint8_t[]){0x00}, 1);          // Start line 0
-    bitbang_cmd_with_args(0xA0, (uint8_t[]){0x14, 0x11}, 2);   // Remap
+    bitbang_cmd_with_args(0xA0, (uint8_t[]){0x06, 0x11}, 2);   // Remap, rev2 180-degree orientation
     bitbang_cmd_with_args(0xB5, (uint8_t[]){0x00}, 1);          // GPIO disable
     bitbang_cmd_with_args(0xAB, (uint8_t[]){0x01}, 1);          // Function select
     bitbang_cmd_with_args(0xB4, (uint8_t[]){0xA0, 0xFD}, 2);   // Display Enhancement A (internal VSL!)
