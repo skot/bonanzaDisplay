@@ -50,6 +50,9 @@
 #define LV_USE_ASSERT_MEM_INTEGRITY     0
 #define LV_USE_ASSERT_OBJ               0
 
+// LVGL Editor-generated screens assign names to objects for inspection.
+#define LV_USE_OBJ_NAME                 1
+
 // ==========================================================================
 // Built-in Fonts
 // ==========================================================================

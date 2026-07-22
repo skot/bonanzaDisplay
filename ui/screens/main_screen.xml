@@ -1,0 +1,65 @@
+<screen>
+    <styles>
+        <style name="screen_style" bg_color="0x080a0d" bg_opa="100%" border_width="0" pad_all="0" />
+        <style name="divider_style" bg_color="0x252a31" bg_opa="100%" border_width="0" radius="0" />
+        <style name="metric_style" text_color="0xFFFFFF" text_font="fmtowns_8x16" />
+        <style name="caption_style" text_color="0x333333" text_font="portfolio_6x8" />
+        <style name="logo_style" image_recolor="0x888888" image_recolor_opa="100%" />
+        <style name="name_style" text_color="0xAAAAAA" text_font="portfolio_6x8" />
+    </styles>
+
+    <view>
+        <style name="screen_style" />
+
+        <lv_image x="10" y="0" src="bitaxe_logo">
+            <style name="logo_style" />
+        </lv_image>
+        <lv_label x="17" y="31" text="BONANZA 1002">
+            <style name="caption_style" />
+        </lv_label>
+        <lv_label x="10" y="45" text="battleaxe">
+            <style name="name_style" />
+        </lv_label>
+        <lv_label x="10" y="54" text="192.168.1.234">
+            <style name="name_style" />
+        </lv_label>
+
+        <lv_label x="112" y="0" bind_text="hashrate_ghs" bind_text-fmt="%dGH/s">
+            <style name="metric_style" />
+        </lv_label>
+        <lv_label x="120" y="13" text="HASHRATE">
+            <style name="caption_style" />
+        </lv_label>
+        <lv_label x="112" y="21" text="123T">
+            <style name="metric_style" />
+        </lv_label>
+        <lv_label x="120" y="34" text="BESTSHARE">
+            <style name="caption_style" />
+        </lv_label>
+        <lv_label x="112" y="42" bind_text="asic_temp_c" bind_text-fmt="%dC">
+            <style name="metric_style" />
+        </lv_label>
+        <lv_label x="120" y="55" text="TEMP">
+            <style name="caption_style" />
+        </lv_label>
+
+        <lv_label x="191" y="0" bind_text="power_w" bind_text-fmt="%dW">
+            <style name="metric_style" />
+        </lv_label>
+        <lv_label x="199" y="13" text="POWER">
+            <style name="caption_style" />
+        </lv_label>
+        <lv_label x="191" y="21" text="621MHz">
+            <style name="metric_style" />
+        </lv_label>
+        <lv_label x="199" y="34" text="FREQUENCY">
+            <style name="caption_style" />
+        </lv_label>
+        <lv_label x="191" y="42" text="66%">
+            <style name="metric_style" />
+        </lv_label>
+        <lv_label x="199" y="55" text="FAN">
+            <style name="caption_style" />
+        </lv_label>
+    </view>
+</screen>

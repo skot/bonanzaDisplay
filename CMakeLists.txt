@@ -16,11 +16,13 @@ pico_sdk_init()
 # LVGL
 # --------------------------------------------------------------------------
 set(LV_BUILD_CONF_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config" CACHE STRING "" FORCE)
-set(LV_CONF_BUILD_DISABLE_EXAMPLES ON CACHE BOOL "" FORCE)
-set(LV_CONF_BUILD_DISABLE_DEMOS ON CACHE BOOL "" FORCE)
-set(LV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(LV_BUILD_DEMOS OFF CACHE BOOL "" FORCE)
+set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "Do not build LVGL examples" FORCE)
+set(CONFIG_LV_BUILD_DEMOS OFF CACHE BOOL "Do not build LVGL demos" FORCE)
+set(CONFIG_LV_USE_THORVG_INTERNAL OFF CACHE BOOL "No vector engine on RP2350" FORCE)
 add_subdirectory(lib/lvgl)
+
+# LVGL Editor exports the UI as a standalone CMake library.
+add_subdirectory(ui)
 
 # Remove Helium (ARMv8.1-M MVE) assembly — not supported on RP2350 Cortex-M33
 get_target_property(LVGL_SOURCES lvgl SOURCES)
@@ -36,10 +38,6 @@ add_executable(${PROJECT_NAME}
     src/input/dial_switch.c
     src/lvgl_port/lv_port_disp.c
     src/lvgl_port/lv_port_indev.c
-    src/ui/ui_dashboard.c
-    src/fonts/font_pixel_8.c
-    src/fonts/font_pixel_12.c
-    src/fonts/font_pixel_16.c
     src/fonts/lv_font_portfolio_6x8.c
 )
 
@@ -55,7 +53,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/display
     ${CMAKE_CURRENT_SOURCE_DIR}/src/input
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lvgl_port
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/fonts
     ${CMAKE_CURRENT_SOURCE_DIR}/config
 )
@@ -67,6 +64,7 @@ target_link_libraries(${PROJECT_NAME}
     hardware_dma
     hardware_timer
     lvgl
+    lib-ui
 )
 
 if(BONANZA_DISPLAY_BRINGUP_TEST)

@@ -1,0 +1,9 @@
+<project name="bonanza_ui">
+    <targets>
+        <target name="pico2w_ssd1322">
+            <display width="256" height="64" color_format="l8" />
+            <memory name="int_ram" size="520K" />
+            <memory name="int_flash" size="4M" />
+        </target>
+    </targets>
+</project>

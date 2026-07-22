@@ -1,0 +1,28 @@
+<globals>
+    <api />
+    <consts />
+    <styles />
+    <subjects>
+        <int name="dial_position" value="0" />
+        <int name="dial_direction" value="0" />
+        <int name="switch_pressed" value="0" />
+        <int name="cw_count" value="0" />
+        <int name="ccw_count" value="0" />
+        <int name="press_count" value="0" />
+        <int name="dial_phase" value="0" />
+        <int name="hashrate_ghs" value="1200" />
+        <int name="asic_temp_c" value="58" />
+        <int name="power_w" value="17" />
+    </subjects>
+    <images>
+        <!-- Derived from ESP-Miner main/logo.c::bitaxe_logo_map. -->
+        <data name="bitaxe_logo" src_path="images/bitaxe_logo.png"
+              color_format="l8" />
+    </images>
+    <fonts>
+        <bin name="fmtowns_8x16" src_path="fonts/Px437_FMTowns_re_8x16.ttf"
+             size="16" bpp="1" range="0x20-0x7e" as_file="false" />
+        <bin name="portfolio_6x8" src_path="fonts/Px437_Portfolio_6x8.ttf"
+             size="8" bpp="1" range="0x20-0x7e" as_file="false" />
+    </fonts>
+</globals>
