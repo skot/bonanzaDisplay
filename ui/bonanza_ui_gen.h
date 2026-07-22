@@ -71,6 +71,12 @@ extern lv_subject_t dial_phase;
 extern lv_subject_t hashrate_ghs;
 extern lv_subject_t asic_temp_c;
 extern lv_subject_t power_w;
+extern lv_subject_t frequency_mhz;
+extern lv_subject_t fan_percent;
+extern lv_subject_t device_identity;
+extern lv_subject_t device_name_text;
+extern lv_subject_t ip_address_text;
+extern lv_subject_t best_share_text;
 
 /**********************
  * GLOBAL PROTOTYPES

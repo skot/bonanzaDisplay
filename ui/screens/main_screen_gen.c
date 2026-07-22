@@ -88,19 +88,19 @@ lv_obj_t * main_screen_create(void)
     lv_obj_t * lv_label_0 = lv_label_create(lv_obj_0);
     lv_obj_set_x(lv_label_0, 17);
     lv_obj_set_y(lv_label_0, 31);
-    lv_label_set_text(lv_label_0, "BONANZA 1002");
+    lv_label_bind_text(lv_label_0, &device_identity, NULL);
     lv_obj_add_style(lv_label_0, &caption_style, 0);
     
     lv_obj_t * lv_label_1 = lv_label_create(lv_obj_0);
     lv_obj_set_x(lv_label_1, 10);
     lv_obj_set_y(lv_label_1, 45);
-    lv_label_set_text(lv_label_1, "battleaxe");
+    lv_label_bind_text(lv_label_1, &device_name_text, NULL);
     lv_obj_add_style(lv_label_1, &name_style, 0);
     
     lv_obj_t * lv_label_2 = lv_label_create(lv_obj_0);
     lv_obj_set_x(lv_label_2, 10);
     lv_obj_set_y(lv_label_2, 54);
-    lv_label_set_text(lv_label_2, "192.168.1.234");
+    lv_label_bind_text(lv_label_2, &ip_address_text, NULL);
     lv_obj_add_style(lv_label_2, &name_style, 0);
     
     lv_obj_t * lv_label_3 = lv_label_create(lv_obj_0);
@@ -118,7 +118,7 @@ lv_obj_t * main_screen_create(void)
     lv_obj_t * lv_label_5 = lv_label_create(lv_obj_0);
     lv_obj_set_x(lv_label_5, 112);
     lv_obj_set_y(lv_label_5, 21);
-    lv_label_set_text(lv_label_5, "123T");
+    lv_label_bind_text(lv_label_5, &best_share_text, NULL);
     lv_obj_add_style(lv_label_5, &metric_style, 0);
     
     lv_obj_t * lv_label_6 = lv_label_create(lv_obj_0);
@@ -154,7 +154,7 @@ lv_obj_t * main_screen_create(void)
     lv_obj_t * lv_label_11 = lv_label_create(lv_obj_0);
     lv_obj_set_x(lv_label_11, 191);
     lv_obj_set_y(lv_label_11, 21);
-    lv_label_set_text(lv_label_11, "621MHz");
+    lv_label_bind_text(lv_label_11, &frequency_mhz, "%dMHz");
     lv_obj_add_style(lv_label_11, &metric_style, 0);
     
     lv_obj_t * lv_label_12 = lv_label_create(lv_obj_0);
@@ -166,7 +166,7 @@ lv_obj_t * main_screen_create(void)
     lv_obj_t * lv_label_13 = lv_label_create(lv_obj_0);
     lv_obj_set_x(lv_label_13, 191);
     lv_obj_set_y(lv_label_13, 42);
-    lv_label_set_text(lv_label_13, "66%");
+    lv_label_bind_text(lv_label_13, &fan_percent, "%d%%");
     lv_obj_add_style(lv_label_13, &metric_style, 0);
     
     lv_obj_t * lv_label_14 = lv_label_create(lv_obj_0);
@@ -183,4 +183,3 @@ lv_obj_t * main_screen_create(void)
 /**********************
  *   STATIC FUNCTIONS
  **********************/
-

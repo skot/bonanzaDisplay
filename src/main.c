@@ -20,6 +20,7 @@
 #include "pin_config.h"
 #include "dial_switch.h"
 #include "bonanza_ui.h"
+#include "i2c_control.h"
 
 // ==========================================================================
 // LVGL Tick — Pico SDK monotonic ms clock
@@ -130,6 +131,12 @@ int main(void) {
     debug_log("Dial switch ready: CCW=GPIO%d CW=GPIO%d SW=GPIO%d\n",
               PIN_DIAL_CCW, PIN_DIAL_CW, PIN_DIAL_SW);
 
+    // --- bitaxe I2C control interface ---
+    debug_log("Init I2C slave: address=0x%02X SDA=GPIO%d SCL=GPIO%d...\n",
+              BONANZA_I2C_ADDRESS, PIN_CONTROL_SDA, PIN_CONTROL_SCL);
+    bonanza_i2c_control_init();
+    debug_log("I2C control interface ready.\n");
+
     // Quick blink to confirm display alive
     debug_log("SSD1322 all-on blink...\n");
     ssd1322_write_cmd(0xA5);  // ALL_ON
@@ -155,6 +162,15 @@ int main(void) {
     uint32_t frame = 0;
     uint32_t last_heartbeat_ms = to_ms_since_boot(get_absolute_time());
     while (1) {
+        bonanza_metrics_t metrics;
+        if (bonanza_i2c_control_take_update(&metrics)) {
+            bonanza_ui_set_metrics(metrics.device_family, metrics.device_model,
+                                   metrics.device_name, metrics.ip_address,
+                                   metrics.best_share, metrics.hashrate_ghs,
+                                   metrics.temperature_c, metrics.power_w,
+                                   metrics.frequency_mhz, metrics.fan_percent);
+        }
+
         dial_switch_update();
         const dial_switch_state_t *dial = dial_switch_get_state();
         bonanza_ui_set_dial_state(dial->position, dial->last_dir,

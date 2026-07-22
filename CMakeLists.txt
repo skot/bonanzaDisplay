@@ -34,6 +34,7 @@ set_target_properties(lvgl PROPERTIES SOURCES "${LVGL_SOURCES}")
 # --------------------------------------------------------------------------
 add_executable(${PROJECT_NAME}
     src/main.c
+    src/control/i2c_control.c
     src/display/ssd1322.c
     src/input/dial_switch.c
     src/lvgl_port/lv_port_disp.c
@@ -50,6 +51,7 @@ pico_generate_pio_header(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/control
     ${CMAKE_CURRENT_SOURCE_DIR}/src/display
     ${CMAKE_CURRENT_SOURCE_DIR}/src/input
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lvgl_port
@@ -63,6 +65,8 @@ target_link_libraries(${PROJECT_NAME}
     hardware_pio
     hardware_dma
     hardware_timer
+    hardware_i2c
+    pico_i2c_slave
     lvgl
     lib-ui
 )

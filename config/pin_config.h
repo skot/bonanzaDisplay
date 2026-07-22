@@ -34,4 +34,11 @@
 #define PIN_DIAL_CW         13        // Clockwise contact / quadrature B
 #define PIN_DIAL_SW         14        // Push switch contact
 
+// --- bitaxe Control Interface ---
+// GPIO20/21 are the I2C0 SDA/SCL function on RP2350.
+#define PIN_CONTROL_SDA     20
+#define PIN_CONTROL_SCL     21
+#define PIN_CONTROL_GPIO1   22        // Reserved for future control use
+#define PIN_CONTROL_GPIO2   23        // Reserved for future control use
+
 #endif // PIN_CONFIG_H

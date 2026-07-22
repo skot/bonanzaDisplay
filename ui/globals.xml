@@ -13,6 +13,12 @@
         <int name="hashrate_ghs" value="1200" />
         <int name="asic_temp_c" value="58" />
         <int name="power_w" value="17" />
+        <int name="frequency_mhz" value="621" />
+        <int name="fan_percent" value="66" />
+        <string name="device_identity" value="BONANZA 1002" />
+        <string name="device_name_text" value="battleaxe" />
+        <string name="ip_address_text" value="192.168.1.234" />
+        <string name="best_share_text" value="123T" />
     </subjects>
     <images>
         <!-- Derived from ESP-Miner main/logo.c::bitaxe_logo_map. -->

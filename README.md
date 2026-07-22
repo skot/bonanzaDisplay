@@ -57,6 +57,69 @@ The bonanzaDisplay has a SIQ-02FVS3 push-button jog wheel on it for interacting 
 
 The Counterclockwise and Clockwise pins are active-low quadrature phases. Both phase pins use pull-ups and connect to COM/GND through the dial contacts as the wheel rotates. Direction is decoded from the A/B phase sequence across a full detent. The Switch pin is also active-low and connects to COM/GND while the dial is pressed.
 
+## bonanzaDisplay control interface
+The bonanzaDisplay is a 100 kHz I2C slave and is designed to receive all of
+the screen metrics from a connected bitaxe. Its 7-bit slave address is
+**`0x3C`**. The bus controller supplies the clock; configure it for no more
+than 100 kHz. The firmware enables the RP2350's weak internal pull-ups, but the
+finished hardware should also provide normal external I2C pull-up resistors.
+
+### Pinout
+| Signal  | RP2350 pin name     |
+|---------|---------------------|
+| SDA     | GPIO20              |
+| SCL     | GPIO21              |
+| GPIO1   | GPIO22              |
+| GPIO2   | GPIO23              |
+
+GPIO22 and GPIO23 are reserved for future control signals and are not used by
+this firmware.
+
+### I2C register protocol
+
+Each transaction starts with a one-byte register address. Bytes written after
+that address are stored in consecutive registers; reads return consecutive
+registers from the current address. To read, first write the desired register
+address and then issue a repeated-start read. Register addressing wraps at
+`0x7F`.
+
+Strings are fixed-size, NUL-terminated ASCII fields. A write beginning at a
+string's base register clears that whole field first, so the controller may
+send only the new text and its terminating NUL. Numbers are unsigned 32-bit
+little-endian values. Registers `0x00` through `0x0F` are read-only.
+
+| Register | Size | Access | Value |
+|----------|-----:|:------:|-------|
+| `0x00` | 1 | R | Protocol version (`1`) |
+| `0x01` | 1 | R | I2C address (`0x3C`) |
+| `0x02` | 1 | R | Register-file size (`128`) |
+| `0x10` | 16 | R/W | Device family, e.g. `BONANZA` |
+| `0x20` | 8 | R/W | Device model, e.g. `1002` |
+| `0x28` | 16 | R/W | Device name, e.g. `battleaxe` |
+| `0x38` | 16 | R/W | IPv4 address string |
+| `0x48` | 16 | R/W | Best-share string, e.g. `123T` |
+| `0x60` | 4 | R/W | Hashrate in GH/s |
+| `0x64` | 4 | R/W | Temperature in degrees C |
+| `0x68` | 4 | R/W | Power in watts |
+| `0x6C` | 4 | R/W | Hash frequency in MHz |
+| `0x70` | 4 | R/W | Fan speed in percent |
+
+The UI is updated after the I2C transaction finishes. For example, the byte
+sequence `60 B0 04 00 00` written to address `0x3C` sets the hashrate to
+1200 GH/s. The byte sequence `48 31 32 33 54 00` sets best share to `123T`.
+
+### Metrics
+- device name. [string] ex: PROTO, GAMMA, BONANZA
+- device model number. [string] ex: 1102, 600, 1002
+- device name. [string] ex: battleaxe
+- Bitaxe IP address. [string] ex: 192.168.1.234
+- current hashrate. [number] ex: 1200 (shown with GH/s units)
+- current best share. [string] ex: 123T
+- current temp. [number] ex: 58 (shown with C units)
+- current power. [number] ex: 17 (shown with W units)
+- current hash frequency. [number] ex: 621 (shown with MHz units)
+- current fan speed. [number] ex: 66 (shown with %)
+
 ## Building
 
 ### Prerequisites
@@ -112,7 +175,10 @@ The dashboard is adapted from `bitaxe-lcd` for the 256×64 OLED. It displays the
 Bitaxe logo, device identity, IP address, hashrate, best share, temperature,
 power, frequency, and fan speed.
 
-The XML currently binds these visible metrics to LVGL integer subjects:
+The XML binds all visible metrics to LVGL subjects. Application code can update
+them together with `bonanza_ui_set_metrics()`. In normal operation, the main
+loop calls this after receiving a complete I2C write transaction. Individual
+integer subjects can also be changed directly, for example:
 
 ```c
 lv_subject_set_int(&hashrate_ghs, 1200);
@@ -148,6 +214,9 @@ bonanzaDisplay/
 │   └── pin_config.h            # GPIO pin assignments
 ├── src/
 │   ├── main.c                  # Entry point, hardware init, and live UI data
+│   ├── control/
+│   │   ├── i2c_control.c       # I2C slave register file and IRQ handler
+│   │   └── i2c_control.h       # Public register map and metrics snapshot
 │   ├── display/
 │   │   ├── ssd1322.c           # SSD1322 driver (PIO + DMA + bitbang)
 │   │   ├── ssd1322.h           # Driver public API

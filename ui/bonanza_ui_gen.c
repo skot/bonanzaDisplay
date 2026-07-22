@@ -73,6 +73,21 @@ lv_subject_t dial_phase;
 lv_subject_t hashrate_ghs;
 lv_subject_t asic_temp_c;
 lv_subject_t power_w;
+lv_subject_t frequency_mhz;
+lv_subject_t fan_percent;
+lv_subject_t device_identity;
+lv_subject_t device_name_text;
+lv_subject_t ip_address_text;
+lv_subject_t best_share_text;
+
+static char device_identity_buf[UI_SUBJECT_STRING_LENGTH];
+static char device_identity_prev_buf[UI_SUBJECT_STRING_LENGTH];
+static char device_name_text_buf[UI_SUBJECT_STRING_LENGTH];
+static char device_name_text_prev_buf[UI_SUBJECT_STRING_LENGTH];
+static char ip_address_text_buf[UI_SUBJECT_STRING_LENGTH];
+static char ip_address_text_prev_buf[UI_SUBJECT_STRING_LENGTH];
+static char best_share_text_buf[UI_SUBJECT_STRING_LENGTH];
+static char best_share_text_prev_buf[UI_SUBJECT_STRING_LENGTH];
 
 /**********************
  *      MACROS
@@ -118,6 +133,20 @@ void bonanza_ui_init_gen(const char * asset_path)
     lv_subject_init_int(&hashrate_ghs, 1200);
     lv_subject_init_int(&asic_temp_c, 58);
     lv_subject_init_int(&power_w, 17);
+    lv_subject_init_int(&frequency_mhz, 621);
+    lv_subject_init_int(&fan_percent, 66);
+    lv_subject_init_string(&device_identity, device_identity_buf,
+                           device_identity_prev_buf, UI_SUBJECT_STRING_LENGTH,
+                           "BONANZA 1002");
+    lv_subject_init_string(&device_name_text, device_name_text_buf,
+                           device_name_text_prev_buf, UI_SUBJECT_STRING_LENGTH,
+                           "battleaxe");
+    lv_subject_init_string(&ip_address_text, ip_address_text_buf,
+                           ip_address_text_prev_buf, UI_SUBJECT_STRING_LENGTH,
+                           "192.168.1.234");
+    lv_subject_init_string(&best_share_text, best_share_text_buf,
+                           best_share_text_prev_buf, UI_SUBJECT_STRING_LENGTH,
+                           "123T");
 
     /*----------------
      * Translations
@@ -141,6 +170,12 @@ void bonanza_ui_init_gen(const char * asset_path)
     lv_xml_register_subject(NULL, "hashrate_ghs", &hashrate_ghs);
     lv_xml_register_subject(NULL, "asic_temp_c", &asic_temp_c);
     lv_xml_register_subject(NULL, "power_w", &power_w);
+    lv_xml_register_subject(NULL, "frequency_mhz", &frequency_mhz);
+    lv_xml_register_subject(NULL, "fan_percent", &fan_percent);
+    lv_xml_register_subject(NULL, "device_identity", &device_identity);
+    lv_xml_register_subject(NULL, "device_name_text", &device_name_text);
+    lv_xml_register_subject(NULL, "ip_address_text", &ip_address_text);
+    lv_xml_register_subject(NULL, "best_share_text", &best_share_text);
 
     /* Register callbacks */
 #endif
