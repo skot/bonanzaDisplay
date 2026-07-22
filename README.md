@@ -6,16 +6,19 @@ The `ui` directory is an **LVGL Editor / LVGL Pro project**. Its XML files are
 the source of truth for screen layout, styles, fonts, and data bindings; the
 exported C is compiled directly into the Pico firmware.
 
-The display is connected via an **8080 8-bit parallel interface**, driven by the RP2350's PIO state machine with DMA for zero-CPU-overhead framebuffer transfers.
+The display is connected through an **8080 8-bit parallel interface**. The CPU
+packs LVGL's L8 framebuffer into the SSD1322's 4bpp format, then DMA and PIO
+perform the hardware-timed transfer.
 
 ## Features
 
 - **SSD1322 256×64 OLED** — 4-bit grayscale (16 shades)
 - **8080 parallel bus** via PIO hardware — ~2.9 MHz byte rate
-- **DMA** transfers framebuffer to PIO TX FIFO with no CPU involvement
+- **DMA + PIO** transfer the packed framebuffer with no CPU-driven bus writes
 - **LVGL 9.x** rendering — L8 (8bpp) with automatic 4bpp packing
 - **Double-buffered** full-screen render mode
 - **Px437 FMTowns and Portfolio** 1bpp bitmap fonts shared with `bitaxe-lcd`
+- **Bitaxe-style dashboard** with an L8 logo and subject-bound mining metrics
 
 ## Hardware
 
@@ -60,7 +63,7 @@ The Counterclockwise and Clockwise pins are active-low quadrature phases. Both p
 
 - [Pico SDK 2.x](https://github.com/raspberrypi/pico-sdk) installed at `~/pico-sdk` (or set `PICO_SDK_PATH`)
 - `arm-none-eabi-gcc` toolchain
-- `cmake` and `make`
+- `cmake` and a supported build backend such as Make or Ninja
 - [picotool](https://github.com/raspberrypi/picotool) for flashing
 
 ### Build
@@ -81,8 +84,9 @@ Or hold BOOTSEL while connecting USB, then drag `build/bonanzaDisplay.uf2` to th
 
 ## Edit the UI with LVGL Editor
 
-1. Install LVGL Editor (LVGL Pro Editor 1.2 or newer, or the official VS Code
-   extension).
+1. Install LVGL Editor or the official VS Code extension. The project is known
+   to work with extension 1.0.1; using the latest available version is
+   recommended.
 2. Open `bonanzaDisplay-fw.code-workspace`. Its first workspace folder is
    `ui`, which puts `globals.xml` and `project.xml` at the root expected by the
    editor. Opening the `ui` directory by itself also works.
@@ -93,8 +97,8 @@ Or hold BOOTSEL while connecting USB, then drag `build/bonanzaDisplay.uf2` to th
 6. Choose **Compile and export code**, then rebuild the firmware.
 
 Keep the `ui/fonts` and `ui/images` directories present. LVGL Editor's
-containerized resource converter mounts both directories even when a project
-currently has no images.
+containerized resource converter mounts both directories. The images directory
+contains the Bitaxe logo source PNG and its generated L8 C data.
 
 The UI uses the same Px437 FMTowns 8×16 and Portfolio 6×8 fonts as
 `bitaxe-lcd`. With LVGL Editor 1.0.x, asset filenames must not contain spaces
@@ -104,15 +108,39 @@ Files ending in `_gen.c` or `_gen.h`, plus `file_list_gen.cmake`, are owned by
 LVGL Editor and may be overwritten. Put persistent C code in `bonanza_ui.c`,
 `bonanza_ui.h`, or add extra sources in `user_config.cmake`.
 
-The screen uses LVGL subjects for live firmware data. Application code updates
-them through `bonanza_ui_set_dial_state()`; labels bound in the XML repaint
-automatically. Keep LVGL calls on the same core/thread as `lv_timer_handler()`
-unless synchronization is added.
+The dashboard is adapted from `bitaxe-lcd` for the 256×64 OLED. It displays the
+Bitaxe logo, device identity, IP address, hashrate, best share, temperature,
+power, frequency, and fan speed.
+
+The XML currently binds these visible metrics to LVGL integer subjects:
+
+```c
+lv_subject_set_int(&hashrate_ghs, 1200);
+lv_subject_set_int(&asic_temp_c, 58);
+lv_subject_set_int(&power_w, 17);
+```
+
+The firmware also updates dial-switch subjects through
+`bonanza_ui_set_dial_state()`, although the current dashboard does not display
+them. Keep all LVGL calls on the same core/thread as `lv_timer_handler()` unless
+synchronization is added.
+
+### Preview troubleshooting
+
+- LVGL Editor 1.0.x does not quote resource paths correctly, so font and image
+  filenames must not contain spaces.
+- If the preview refers to an asset that has been removed or renamed, close the
+  preview, remove `ui/preview-bin` and `ui/preview-build`, then click the hammer
+  to build a fresh runtime. These directories are generated and ignored by Git.
+- Screen zoom is not persisted by LVGL Editor 1.0.1. A persistent `<preview
+  zoom="200%">` is supported for components and widgets, but not screens. VS
+  Code's `window.zoomLevel` can enlarge the whole editor as a workaround.
 
 ## Project Structure
 
 ```
 bonanzaDisplay/
+├── .gitignore                  # Build, firmware, and editor-cache exclusions
 ├── bonanzaDisplay-fw.code-workspace # Opens UI at the LVGL Editor project root
 ├── CMakeLists.txt              # Top-level build configuration
 ├── config/
@@ -127,16 +155,26 @@ bonanzaDisplay/
 │   │   └── parallel_8080.pio   # PIO program for 8080 bus
 │   ├── fonts/
 │   │   └── lv_font_portfolio_6x8.c # LVGL default/fallback font
+│   ├── input/
+│   │   ├── dial_switch.c       # Jog-wheel decoding and debounce
+│   │   └── dial_switch.h
 │   ├── lvgl_port/
 │   │   ├── lv_port_disp.c      # LVGL display driver (L8 → 4bpp → DMA)
 │   │   └── lv_port_disp.h
 ├── ui/                         # LVGL Editor / LVGL Pro project
 │   ├── project.xml             # 256×64 L8 target definition
-│   ├── globals.xml             # Fonts and observable subjects
+│   ├── globals.xml             # Fonts, logo, and observable subjects
+│   ├── fonts/                  # Source TTFs and editor-generated font data
+│   ├── images/
+│   │   ├── bitaxe_logo.png     # Editable logo source
+│   │   └── bitaxe_logo_data.c  # Editor-generated L8 image data
 │   ├── screens/
 │   │   ├── main_screen.xml     # Editable screen source
 │   │   └── main_screen_gen.c   # Editor-generated firmware source
 │   ├── bonanza_ui.c            # Persistent application-facing UI hooks
+│   ├── bonanza_ui_gen.c        # Editor-generated subjects/assets setup
+│   ├── file_list_gen.cmake     # Editor-generated source manifest
+│   ├── user_config.cmake       # Persistent extra-source configuration
 │   └── CMakeLists.txt          # Builds exported UI as lib-ui
 └── lib/
     └── lvgl/                   # LVGL 9.x (git submodule)
@@ -157,11 +195,34 @@ bonanzaDisplay/
                                                         └──────────┘
 ```
 
-1. **LVGL Editor** exports the XML UI as C and LVGL renders it to an L8
-   (8-bit grayscale) double buffer
-2. **Flush callback** packs L8 → 4bpp (upper nibble of each byte → two 4-bit pixels per byte)
-3. **DMA** transfers the packed buffer to PIO TX FIFO
+1. **LVGL Editor** exports the XML UI as C, and LVGL renders it to an L8
+   (8-bit luminance) double buffer.
+2. The CPU-side **flush callback** packs L8 → 4bpp by taking each pixel's upper
+   nibble and combining two adjacent pixels per byte.
+3. **DMA** transfers the packed buffer to the PIO TX FIFO without CPU-driven
+   bus writes.
 4. **PIO** clocks out each byte with hardware-timed WR# strobes on the 8080 bus
+
+## Grayscale and brightness
+
+The OLED emits a single color but supports **16 brightness levels per pixel**.
+LVGL renders 8-bit luminance and the flush callback reduces it to the SSD1322's
+4-bit grayscale range. For predictable UI brightness, use neutral RGB values
+with equal components:
+
+```xml
+text_color="0xffffff"  <!-- level 15: brightest -->
+text_color="0xaaaaaa"  <!-- level 10 -->
+text_color="0x777777"  <!-- level 7 -->
+text_color="0x333333"  <!-- level 3 -->
+text_color="0x000000"  <!-- level 0: off -->
+```
+
+Values from `0x000000`, `0x111111`, ... through `0xffffff` map naturally to
+the 16 hardware levels. Colored preview values have no hue on the OLED; LVGL
+converts them to luminance. The Bitaxe logo is converted to L8 in `globals.xml`,
+and its displayed brightness can be adjusted with an `image_recolor` style
+using a neutral grayscale value.
 
 ## Fonts
 
