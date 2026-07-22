@@ -1,4 +1,5 @@
 # bonanzaDisplay-fw
+![display preview](image.png)
 
 Firmware for driving a **SSD1322-based 256×64 OLED display** from a **RP2350** on the bitaxeBonanza display board using the **LVGL** graphics library.
 
